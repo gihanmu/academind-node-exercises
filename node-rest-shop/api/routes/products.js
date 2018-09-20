@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const Product = require('../models/product');
+const mongoose = require('mongoose');
 
 router.get('/', (req, res, next) => {
     res.status(200).json({
@@ -8,10 +10,17 @@ router.get('/', (req, res, next) => {
 });
 
 router.post('/', (req, res, next) => {
-    const product = {
+    const product = new Product({
+        _id : mongoose.Types.ObjectId(),
         name : req.body.name,
         price : req.body.price
-    }
+    })
+
+    product.save().then(result => {
+        console.log(result);
+    }).catch(error => {
+        console.log(error);
+    })
     res.status(201).json({
         message : 'Handling POST requests to /products',
         createdProduct : product
@@ -25,17 +34,21 @@ router.get('/:productId', (req, res, next) => {
             message : 'Product not found',
            
         });
-    }else if(id === 'special'){
-        res.status(200).json({
-            message : 'You discovered the special ID',
-            id : id
-        });
-    }else {
-        res.status(200).json({
-            message : 'You passed an ID',
-            id : id
+    }else{
+        console.log(`Fetching products by id : ${id}`);
+        Product.findById(id).then(product => {
+            console.log(product);
+            res.status(200).json({
+                status : 'Success',
+                product : product
+            })
+        }).catch(error => {
+            res.status(404).json({
+                status : 'error',
+                message : error
+            })
         })
-
+      
     }
 });
 
